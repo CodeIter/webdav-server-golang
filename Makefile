@@ -1,5 +1,5 @@
 
-MODULE  := github.com/example/webdav-server
+MODULE  := github.com/CodeIter/webdav-server-golang
 BINARY  := webdav-server
 BIN_DIR := bin
 CMD_DIR := ./cmd
