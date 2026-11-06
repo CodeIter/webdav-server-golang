@@ -1,6 +1,35 @@
 package config
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"testing"
+)
+
+func TestParseTLSConfig(t *testing.T) {
+	dir := t.TempDir()
+	certPath := filepath.Join(dir, "cert.pem")
+	keyPath := filepath.Join(dir, "key.pem")
+	if err := os.WriteFile(certPath, []byte("CERT"), 0o600); err != nil {
+		t.Fatalf("write cert: %v", err)
+	}
+	if err := os.WriteFile(keyPath, []byte("KEY"), 0o600); err != nil {
+		t.Fatalf("write key: %v", err)
+	}
+
+	cfg, err := Parse([]string{"--serve", dir, "--cert", certPath, "--key", keyPath}, func(string) string { return "" })
+	if err != nil {
+		t.Fatalf("Parse() unexpected error: %v", err)
+	}
+	if cfg.CertFile != certPath || cfg.KeyFile != keyPath {
+		t.Fatalf("Parse() TLS files = (%q, %q), want (%q, %q)", cfg.CertFile, cfg.KeyFile, certPath, keyPath)
+	}
+
+	_, err = Parse([]string{"--serve", dir, "--cert", certPath}, func(string) string { return "" })
+	if err == nil {
+		t.Fatal("Parse() with only cert should fail")
+	}
+}
 
 func TestParseListenAddr(t *testing.T) {
 	tests := []struct {

@@ -47,10 +47,11 @@ func Run(args []string, stdout, stderr io.Writer, getenv func(string) string) in
 		"listen", cfg.ListenAddr,
 		"dir", cfg.ServeDir,
 		"auth", cfg.AuthEnabled(),
+		"tls", cfg.TLSEnabled(),
 	)
 
 	handler := server.NewHandler(cfg, logger)
-	if err := server.Run(ctx, cfg.ListenAddr, handler, logger); err != nil {
+	if err := server.Run(ctx, cfg.ListenAddr, handler, logger, cfg.CertFile, cfg.KeyFile); err != nil {
 		logger.Error("server stopped with error", "error", err)
 		return exitFailure
 	}

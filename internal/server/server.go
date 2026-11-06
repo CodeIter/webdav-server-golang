@@ -53,7 +53,7 @@ func NewHandler(cfg *config.Config, logger *slog.Logger) http.Handler {
 
 // Run serves handler on addr until ctx is cancelled, then shuts down gracefully.
 // Read and write timeouts are deliberately not set, since large uploads and downloads are expected.
-func Run(ctx context.Context, addr string, handler http.Handler, logger *slog.Logger) error {
+func Run(ctx context.Context, addr string, handler http.Handler, logger *slog.Logger, certFile, keyFile string) error {
 	srv := &http.Server{
 		Addr:              addr,
 		Handler:           handler,
@@ -63,8 +63,14 @@ func Run(ctx context.Context, addr string, handler http.Handler, logger *slog.Lo
 
 	errCh := make(chan error, 1)
 	go func() {
-		logger.Info("listening", "addr", addr)
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logger.Info("listening", "addr", addr, "tls", certFile != "" && keyFile != "")
+		var err error
+		if certFile != "" && keyFile != "" {
+			err = srv.ListenAndServeTLS(certFile, keyFile)
+		} else {
+			err = srv.ListenAndServe()
+		}
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errCh <- err
 		}
 	}()

@@ -30,11 +30,18 @@ type Config struct {
 	ServeDir   string
 	Username   string
 	Password   string
+	CertFile   string
+	KeyFile    string
 }
 
 // AuthEnabled reports whether HTTP basic authentication is required.
 func (c *Config) AuthEnabled() bool {
 	return c.Username != ""
+}
+
+// TLSEnabled reports whether HTTPS is configured with both a certificate and key.
+func (c *Config) TLSEnabled() bool {
+	return c.CertFile != "" && c.KeyFile != ""
 }
 
 // Parse reads arguments and the environment, then validates them.
@@ -46,6 +53,8 @@ func Parse(args []string, getenv func(string) string) (*Config, error) {
 		listen      string
 		serveDir    string
 		username    string
+		certFile    string
+		keyFile     string
 	)
 
 	fs := flag.NewFlagSet(programName, flag.ContinueOnError)
@@ -61,6 +70,10 @@ func Parse(args []string, getenv func(string) string) (*Config, error) {
 	fs.StringVar(&serveDir, "s", "", "")
 	fs.StringVar(&username, "username", "", "")
 	fs.StringVar(&username, "u", "", "")
+	fs.StringVar(&certFile, "cert", "", "")
+	fs.StringVar(&certFile, "c", "", "")
+	fs.StringVar(&keyFile, "key", "", "")
+	fs.StringVar(&keyFile, "k", "", "")
 
 	if err := fs.Parse(args); err != nil {
 		return nil, fmt.Errorf("invalid arguments: %w", err)
@@ -85,9 +98,16 @@ func Parse(args []string, getenv func(string) string) (*Config, error) {
 		return nil, err
 	}
 
+	certPath, keyPath, err := validateTLSFiles(certFile, keyFile)
+	if err != nil {
+		return nil, err
+	}
+
 	cfg := &Config{
 		ListenAddr: addr,
 		ServeDir:   dir,
+		CertFile:   certPath,
+		KeyFile:    keyPath,
 	}
 
 	if username != "" {
@@ -122,4 +142,32 @@ func validateServeDir(dir string) (string, error) {
 	}
 
 	return abs, nil
+}
+
+// validateTLSFiles checks that both certFile and keyFile are provided together, and that they exist.
+func validateTLSFiles(certFile, keyFile string) (string, string, error) {
+	if certFile == "" && keyFile == "" {
+		return "", "", nil
+	}
+	if certFile == "" || keyFile == "" {
+		return "", "", errors.New("both --cert and --key must be provided together")
+	}
+
+	certAbs, err := filepath.Abs(certFile)
+	if err != nil {
+		return "", "", fmt.Errorf("resolve certificate path: %w", err)
+	}
+	if _, err := os.Stat(certAbs); err != nil {
+		return "", "", fmt.Errorf("certificate file: %w", err)
+	}
+
+	keyAbs, err := filepath.Abs(keyFile)
+	if err != nil {
+		return "", "", fmt.Errorf("resolve private key path: %w", err)
+	}
+	if _, err := os.Stat(keyAbs); err != nil {
+		return "", "", fmt.Errorf("private key file: %w", err)
+	}
+
+	return certAbs, keyAbs, nil
 }
