@@ -102,6 +102,7 @@ func Parse(args []string, getenv func(string) string) (*Config, error) {
 	return cfg, nil
 }
 
+// validateServeDir checks that the provided directory exists and is a directory, returning its absolute path.
 func validateServeDir(dir string) (string, error) {
 	if dir == "" {
 		return "", errors.New("--serve is required")

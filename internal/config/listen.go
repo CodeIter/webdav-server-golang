@@ -50,6 +50,7 @@ func ParseListenAddr(value string) (string, error) {
 	return net.JoinHostPort(host, port), nil
 }
 
+// validatePort checks that s is a valid TCP port number.
 func validatePort(s string) error {
 	n, err := strconv.Atoi(s)
 	if err != nil || n < 1 || n > 65535 {
@@ -58,6 +59,7 @@ func validatePort(s string) error {
 	return nil
 }
 
+// isDigits returns true if s consists only of digits.
 func isDigits(s string) bool {
 	if s == "" {
 		return false

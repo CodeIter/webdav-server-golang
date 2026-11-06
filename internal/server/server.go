@@ -35,6 +35,12 @@ func NewHandler(cfg *config.Config, logger *slog.Logger) http.Handler {
 					"path", r.URL.Path,
 					"error", err,
 				)
+			} else {
+				logger.Info("webdav request",
+					"addr", r.RemoteAddr,
+					"method", r.Method,
+					"path", r.URL.Path,
+				)
 			}
 		},
 	}

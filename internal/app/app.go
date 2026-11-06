@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	exitOK      = 0
-	exitFailure = 1
-	exitUsage   = 2
+	exitOK         = 0
+	exitFailure    = 1
+	exitUsageError = 2
 )
 
 // Run executes the CLI and returns a process exit code.
@@ -35,7 +35,7 @@ func Run(args []string, stdout, stderr io.Writer, getenv func(string) string) in
 	case err != nil:
 		fmt.Fprintf(stderr, "error: %v\n\n", err)
 		config.PrintUsage(stderr)
-		return exitUsage
+		return exitUsageError
 	}
 
 	logger := slog.New(slog.NewTextHandler(stderr, nil))
