@@ -74,4 +74,5 @@ echo
 
 set -x
 
+./bin/webdav-server --version
 "${CMD[@]}"
