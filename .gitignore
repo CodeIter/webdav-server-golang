@@ -2,6 +2,8 @@
 bin
 data
 getfiles.txt
+server.crt
+server.key
 
 # Created by https://www.toptal.com/developers/gitignore/api/go
 # Edit at https://www.toptal.com/developers/gitignore?templates=go
